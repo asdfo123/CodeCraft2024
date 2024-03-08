@@ -67,7 +67,7 @@ void Init()
     fflush(stdout);
 }
 
-int Input()
+int Input(int startzhen)
 {
     scanf("%d%d", &id, &money);
     int num;
@@ -76,12 +76,11 @@ int Input()
     {
         int x, y, val;
         scanf("%d%d%d", &x, &y, &val);
-        items.push_back(Item{x, y, id, val});
+        items.push_back(Item{x, y, startzhen, val});
     }
     for(int i = 0; i < robot_num; i ++)
     {
-        int sts;
-        scanf("%d%d%d%d", &robot[i].goods, &robot[i].x, &robot[i].y, &sts);
+        scanf("%d%d%d%d", &robot[i].goods, &robot[i].x, &robot[i].y, &robot[i].status);
     }
     for(int i = 0; i < 5; i ++)
         scanf("%d%d\n", &boat[i].status, &boat[i].pos);
@@ -99,10 +98,12 @@ struct Point {
     int x, y;
     Point(int x, int y) : x(x), y(y) {}
 };
-
+int dist[N][N];
 //BFS: return a 2D vector of shortest distance from start to each point.
-vector<vector<int>> bfs(const Point& start) {
-    vector<vector<int>> dist(N, vector<int>(N, INF));
+void bfs(const Point& start) {
+    for(int i = 0;i < N;i++)
+        for(int j = 0;j < N;j++)
+            dist[i][j] = INF;
     queue<Point> q;
     q.push(start);
     dist[start.x][start.y] = 0;
@@ -114,23 +115,25 @@ vector<vector<int>> bfs(const Point& start) {
         for (int i = 0; i < 4; i++) {
             int nx = cur.x + dx[i];
             int ny = cur.y + dy[i];
-
-            if (nx >= 0 && nx < N && ny >= 0 && ny < N && ch[nx][ny] == '.' && dist[nx][ny] == INF) {
+            if (nx > 0 && nx <= n && ny > 0 && ny <= n && ch[nx][ny] !='#'&&ch[nx][ny]!='*' && dist[nx][ny] == INF) {
                 dist[nx][ny] = dist[cur.x][cur.y] + 1;
                 q.push(Point(nx, ny));
             }
         }
     }
-
-    return dist;
 }
 
 
 int findNextMove(int robot_id) {
-    vector<vector<int>> dist = bfs(Point(robot[robot_id].x, robot[robot_id].y));
+    bfs(Point(robot[robot_id].x, robot[robot_id].y));
+//    for(int i = 1;i <= N;i++)
+//    {
+//        for(int j = 1;j <= N;j++)
+//            if(dist[i][j] != INF) cerr << dist[i][j] << " ";
+//    }
     int min_distance = INF;
     Point targetPos(0, 0);
-    for (const Item& item : items) {
+    for (auto item : items) {
         int distance = dist[item.x][item.y];
         if (distance < min_distance) {
             min_distance = distance;
@@ -140,29 +143,26 @@ int findNextMove(int robot_id) {
 
     int x = targetPos.x;
     int y = targetPos.y;
-    int dir1 = -1;
+    int dir1 = 0;
     while (dist[x][y] > 1) {
         for (int dir = 0; dir < 4; dir++) {
-            int nx = x - dx[dir];
-            int ny = y - dy[dir];
-            if (nx >= 0 && nx < N && ny >= 0 && ny < N && dist[nx][ny] == dist[x][y] - 1) {
+            int nx = x + dx[dir];
+            int ny = y + dy[dir];
+            if (nx > 0 && nx <= n && ny > 0 && ny <= n && dist[nx][ny] == dist[x][y] - 1) {
                 x = nx;
                 y = ny;
                 break;
             }
         }
     }
-    if(dist[x][y] == 1){
-        for(int dir = 0; dir < 4; dir++){
-            int nx = x - dx[dir];
-            int ny = y - dy[dir];
-            if(nx == robot[robot_id].x && ny == robot[robot_id].y){
-                dir1 = dir;
-                break;
-            }
+    for(int dir = 0; dir < 4; dir++){
+        int nx = x - dx[dir];
+        int ny = y - dy[dir];
+        if(nx == robot[robot_id].x && ny == robot[robot_id].y){
+            dir1 = dir;
+            break;
         }
     }
-
     return dir1;// 0: right, 1: left, 2: up, 3: down
 }
 void handle_item(int nowzhen)
@@ -175,18 +175,21 @@ void handle_item(int nowzhen)
 }
 void handle_robot(int robot_id)
 {
-//    if(robot[robot_id].status == 0) //is_recovering
-//        return;
-//    int dir = findNextMove(robot_id);
-    printf("move %d %d\n", robot_id, rand()%4);
+    if(robot[robot_id].status == 0) //is_recovering
+        return;
+
+    int dir = findNextMove(robot_id);
+//    int dir = 0;
+    printf("move %d %d\n", robot_id, dir);
 }
 int main()
 {
     Init();
-    for(int zhen = 1; zhen <= 15000; zhen ++)
+    for(int zhen = 1; zhen <= 15000; zhen++)
     {
-        int id = Input();
+        int id = Input(zhen);
         handle_item(zhen);
+
         for(int i = 0; i < robot_num; i++){
             handle_robot(i);
         }
@@ -196,3 +199,22 @@ int main()
 
     return 0;
 }
+/*
+....
+....
+....
+....
+4
+OK
+1 0
+2
+1 3 3
+2 4 3
+0 1 1 1
+1 -1
+1 -1
+1 -1
+1 -1
+1 -1
+OK
+ */
