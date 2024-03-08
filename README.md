@@ -7,3 +7,6 @@ Repository of Team "Fanclub for Tang Keke" in Huawei CodeCraft 2024
 Several bugs still exists
 # 当前问题
 一些bug仍然存在
+# to-do-list
+Structure
+Class: Item, Robot, Berth
