@@ -24,6 +24,8 @@ struct Berth
     int y;
     int transport_time;
     int loading_speed;
+    int now_items;
+    int boat_is_coing;
     Berth(){}
     Berth(int x, int y, int transport_time, int loading_speed) {
         this -> x = x;
@@ -36,6 +38,7 @@ struct Berth
 struct Boat
 {
     int num, pos, status;
+    int startzhen;
 }boat[10];
 
 struct Item{
@@ -43,7 +46,7 @@ struct Item{
     int startzhen;
     int val;
     bool operator==(const Item& other) const {
-        return x == other.x && y == other.y && startzhen == other.startzhen;
+        return x == other.x && y == other.y;
     }
 };
 int money, boat_capacity, id;
@@ -52,13 +55,15 @@ vector<Item> items;
 
 void Init()
 {
-    for(int i = 1; i <= n; i ++)
-        scanf("%s", ch[i] + 1);
+    for(int i = 0; i < n; i ++)
+        scanf("%s", ch[i]);
     for(int i = 0; i < berth_num; i ++)
     {
         int idd;
         scanf("%d", &idd);
         scanf("%d%d%d%d", &berth[idd].x, &berth[idd].y, &berth[idd].transport_time, &berth[idd].loading_speed);
+        berth[i].now_items = 0;
+        berth[i].boat_is_coing = 0;
     }
     scanf("%d", &boat_capacity);
     char okk[100];
@@ -72,7 +77,7 @@ int Input(int startzhen)
     scanf("%d%d", &id, &money);
     int num;
     scanf("%d", &num);
-    for(int i = 1; i <= num; i ++)
+    for(int i = 1; i <= num; i++)
     {
         int x, y, val;
         scanf("%d%d%d", &x, &y, &val);
@@ -81,6 +86,8 @@ int Input(int startzhen)
     for(int i = 0; i < robot_num; i ++)
     {
         scanf("%d%d%d%d", &robot[i].goods, &robot[i].x, &robot[i].y, &robot[i].status);
+        robot[i].mbx = robot[i].x;
+        robot[i].mby = robot[i].y;
     }
     for(int i = 0; i < 5; i ++)
         scanf("%d%d\n", &boat[i].status, &boat[i].pos);
@@ -89,7 +96,7 @@ int Input(int startzhen)
     return id;
 }
 
-const int INF = INT_MAX;
+const int INF = INT_MAX - 10;
 
 // 0: right, 1: left, 2: up, 3: down
 const int dx[] = {0, 0, -1, 1};
@@ -115,7 +122,7 @@ void bfs(const Point& start) {
         for (int i = 0; i < 4; i++) {
             int nx = cur.x + dx[i];
             int ny = cur.y + dy[i];
-            if (nx > 0 && nx <= n && ny > 0 && ny <= n && ch[nx][ny] !='#'&&ch[nx][ny]!='*' && dist[nx][ny] == INF) {
+            if (nx >= 0 && nx < n && ny >= 0 && ny < n && ch[nx][ny] != '#' && ch[nx][ny] != '*' && dist[nx][ny] == INF) {
                 dist[nx][ny] = dist[cur.x][cur.y] + 1;
                 q.push(Point(nx, ny));
             }
@@ -124,37 +131,60 @@ void bfs(const Point& start) {
 }
 
 
-int findNextMove(int robot_id) {
+int findNextMove(int robot_id, bool goods) {
     bfs(Point(robot[robot_id].x, robot[robot_id].y));
-//    for(int i = 1;i <= N;i++)
-//    {
-//        for(int j = 1;j <= N;j++)
-//            if(dist[i][j] != INF) cerr << dist[i][j] << " ";
-//    }
+
     int min_distance = INF;
     Point targetPos(0, 0);
-    for (auto item : items) {
-        int distance = dist[item.x][item.y];
-        if (distance < min_distance) {
-            min_distance = distance;
-            targetPos = Point(item.x, item.y);
+    if(goods == 0)//find goods
+    {
+        for (auto item : items) {
+            int distance = dist[item.x][item.y];
+            if (distance < min_distance) {
+                min_distance = distance;
+                targetPos = Point(item.x, item.y);
+            }
         }
     }
-
+    else //find berth
+    {
+        for (int i = 0; i < berth_num; i++) {
+            int distance = dist[berth[i].x][berth[i].y];
+//            cerr<<berth[i].x<<" "<<berth[i].y<<endl;
+//            cerr<<distance<<endl;
+            if (distance < min_distance) {
+                min_distance = distance;
+                targetPos = Point(berth[i].x, berth[i].y);
+            }
+        }
+    }
+    if(min_distance == INF) return -1;
+    if(min_distance == 0) return 4;
+    //cerr<<"1"<<endl;
     int x = targetPos.x;
     int y = targetPos.y;
     int dir1 = 0;
+    //cerr<<dist[x][y]<<endl;
     while (dist[x][y] > 1) {
         for (int dir = 0; dir < 4; dir++) {
             int nx = x + dx[dir];
             int ny = y + dy[dir];
-            if (nx > 0 && nx <= n && ny > 0 && ny <= n && dist[nx][ny] == dist[x][y] - 1) {
+            if (nx >= 0 && nx < n && ny >= 0 && ny < n && dist[nx][ny] == dist[x][y] - 1) {
                 x = nx;
                 y = ny;
                 break;
             }
         }
     }
+    for(int i = 0;i < robot_num;i++)
+    {
+        if(i == robot_id) continue;
+        if(robot[i].mbx == x && robot[i].mby == y)
+        {
+            return -1;
+        }
+    }
+    //cerr<<"2"<<endl;
     for(int dir = 0; dir < 4; dir++){
         int nx = x - dx[dir];
         int ny = y - dy[dir];
@@ -163,13 +193,16 @@ int findNextMove(int robot_id) {
             break;
         }
     }
+    //cerr<<"3"<<endl;
+    robot[robot_id].mbx = x;
+    robot[robot_id].mby = y;
     return dir1;// 0: right, 1: left, 2: up, 3: down
 }
 void handle_item(int nowzhen)
 {
     for(Item &i : items)
     {
-        if(i.startzhen + 1000 < nowzhen)
+        if(i.startzhen + 2000 < nowzhen)
             items.erase(remove(items.begin(), items.end(), i), items.end());
     }
 }
@@ -177,21 +210,77 @@ void handle_robot(int robot_id)
 {
     if(robot[robot_id].status == 0) //is_recovering
         return;
+    if(robot[robot_id].goods == 0)
+    {
+        int dir = findNextMove(robot_id, robot[robot_id].goods);
+        if(dir == 4)
+        {
+            printf("get %d\n", robot_id);
+            items.erase(remove(items.begin(), items.end(), Item{robot[robot_id].x, robot[robot_id].y, 0, 0}), items.end());
+        }
+        else if(dir >= 0 && dir <= 3) printf("move %d %d\n", robot_id, dir);
+        else return;
+    }
+    else
+    {
+        int dir = findNextMove(robot_id, robot[robot_id].goods);
+        if(dir == 4)
+        {
+            printf("pull %d\n", robot_id);
+            for(int i = 0;i < berth_num;i++)
+            {
+                if(berth[i].x == robot[robot_id].x && berth[i].y == robot[robot_id].y)
+                {
+                    berth[i].now_items += 1;
+                    break;
+                }
+            }
+        }
+        else if(dir >= 0 && dir <= 3) printf("move %d %d\n", robot_id, dir);
+        else return;
+    }
 
-    int dir = findNextMove(robot_id);
-//    int dir = 0;
-    printf("move %d %d\n", robot_id, dir);
 }
+void handle_boat(int boat_id,int nowzhen)
+{
+    if(boat[boat_id].status == 0) return;
+    if(boat[boat_id].status == 1 && boat[boat_id].pos == -1){
+        for(int i = 0;i < berth_num;i++)
+        {
+            if(berth[i].now_items > 0 && berth[i].boat_is_coing == 0)
+            {
+                printf("ship %d %d\n", boat_id, i);
+                berth[i].boat_is_coing = 1;
+                break;
+            }
+        }
+    }
+    if(boat[boat_id].status == 1 && boat[boat_id].pos != -1){
+        if(boat[boat_id].startzhen == 0) boat[boat_id].startzhen = nowzhen;
+        if(boat[boat_id].startzhen + 500 < nowzhen)
+        {
+            printf("ship %d\n",boat_id);
+            berth[boat[boat_id].pos].now_items = 0;
+            berth[boat[boat_id].pos].boat_is_coing = 0;
+            boat[boat_id].startzhen = 0;
+        }
+    }
+}
+
 int main()
 {
     Init();
     for(int zhen = 1; zhen <= 15000; zhen++)
     {
         int id = Input(zhen);
-        handle_item(zhen);
-
+        handle_item(id);
         for(int i = 0; i < robot_num; i++){
+            //cerr<<zhen<<" "<<i<<endl;
             handle_robot(i);
+        }
+        for(int i = 0;i < 5;i++)
+        {
+            handle_boat(i,id);
         }
         puts("OK");
         fflush(stdout);
