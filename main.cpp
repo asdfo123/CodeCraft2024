@@ -322,7 +322,6 @@ void handle_boat(int boat_id,int nowzhen)
         }
     }
 }
-
 int main()
 {
     Init();
