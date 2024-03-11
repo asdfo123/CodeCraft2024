@@ -334,6 +334,7 @@ void handle_boat(int boat_id,int nowzhen)
                 berth[i].boat_is_coming = 1;
             }
             q.pop();
+
         }
 //        for(int i = 0;i < berth_num;i++)
 //        {
