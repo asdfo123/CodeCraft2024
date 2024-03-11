@@ -50,6 +50,7 @@ struct Item{
     int x, y;
     int startzhen;
     int val;
+    Item(int x, int y, int startzhen, int val) : x(x), y(y), startzhen(startzhen), val(val) {}
     bool operator==(const Item& other) const {
         return x == other.x && y == other.y;
     }
@@ -69,6 +70,8 @@ void Init()
         scanf("%d%d%d%d", &berth[idd].x, &berth[idd].y, &berth[idd].transport_time, &berth[idd].loading_speed);
         berth[i].now_items = 0;
         berth[i].boat_is_coming = 0;
+        berth[idd].x++;
+        berth[idd].y++;//更平均
     }
     scanf("%d", &boat_capacity);
     char okk[100];
@@ -87,6 +90,8 @@ int Input(int startzhen)
         int x, y, val;
         scanf("%d%d%d", &x, &y, &val);
         items.push_back(Item{x, y, startzhen, val});
+//        sum_item += val;
+//        num_item++;
     }
     for(int i = 0; i < robot_num; i ++)
     {
@@ -139,7 +144,7 @@ void bfs(const Point& start,int mode=0) {
 priority_queue<pair<int,int>> q;
 int findNextMove(int robot_id, bool goods,int nowzhen) {
     bfs(Point(robot[robot_id].x, robot[robot_id].y),goods);
-    if(robot[robot_id].logtime + 10 < nowzhen)
+    if(robot[robot_id].logtime + 10 < nowzhen) //8好
     {
         if(robot[robot_id].logx == robot[robot_id].x && robot[robot_id].logy == robot[robot_id].y){
             int pianyi = rand()%4;
@@ -174,15 +179,18 @@ int findNextMove(int robot_id, bool goods,int nowzhen) {
     }
     int min_distance = INF;
     Point targetPos(0, 0);
+    int status_metrics = INF;
     if(goods == 0)//find goods
     {
         for (auto item : items) {
             int distance = dist[item.x][item.y];
-            if (distance < min_distance) {
+            if (distance < min_distance){
+                //status_metrics = distance - item.val;
                 min_distance = distance;
                 targetPos = Point(item.x, item.y);
             }
         }
+        if(min_distance == INF) return -1;
     }
     else //find berth
     {
@@ -195,9 +203,12 @@ int findNextMove(int robot_id, bool goods,int nowzhen) {
                 targetPos = Point(berth[i].x, berth[i].y);
             }
         }
+        if(min_distance == INF) return -1;
     }
-    if(min_distance == INF) return -1;
-    if(min_distance == 0) return 4;
+    if(min_distance == 0)
+    {
+        return 4;
+    }
     //cerr<<"1"<<endl;
     int x = targetPos.x;
     int y = targetPos.y;
@@ -234,6 +245,10 @@ int findNextMove(int robot_id, bool goods,int nowzhen) {
     //cerr<<"3"<<endl;
     robot[robot_id].mbx = x;
     robot[robot_id].mby = y;
+//    if(min_distance == 1)
+//    {
+//        return 5+dir1;
+//    }
     return dir1;// 0: right, 1: left, 2: up, 3: down
 }
 void handle_item(int nowzhen)
@@ -241,7 +256,12 @@ void handle_item(int nowzhen)
     for(Item &i : items)
     {
         if(i.startzhen + 1000 < nowzhen)
+        {
             items.erase(remove(items.begin(), items.end(), i), items.end());
+//            sum_item -= i.val;
+//            num_item--;
+        }
+
     }
 }
 void handle_robot(int robot_id,int nowzhen)
@@ -255,8 +275,15 @@ void handle_robot(int robot_id,int nowzhen)
         {
             printf("get %d\n", robot_id);
             items.erase(remove(items.begin(), items.end(), Item{robot[robot_id].x, robot[robot_id].y, 0, 0}), items.end());
+
         }
         else if(dir >= 0 && dir <= 3) printf("move %d %d\n", robot_id, dir);
+//        else if(dir >= 5)
+//        {
+//            printf("move %d %d\n", robot_id, dir-5);
+//            printf("get %d\n", robot_id);
+//            items.erase(remove(items.begin(), items.end(), Item{robot[robot_id].mbx, robot[robot_id].mby, 0, 0}), items.end());
+//        }
         else return;
     }
     else
@@ -276,6 +303,20 @@ void handle_robot(int robot_id,int nowzhen)
             }
         }
         else if(dir >= 0 && dir <= 3) printf("move %d %d\n", robot_id, dir);
+//        else if(dir >= 5)
+//        {
+//            printf("move %d %d\n", robot_id, dir-5);
+//            printf("pull %d\n", robot_id);
+//            for(int i = 0;i < berth_num;i++)
+//            {
+//                if(berth[i].x == robot[robot_id].mbx && berth[i].y == robot[robot_id].mby)
+//                {
+//                    berth[i].now_items += 1;
+//                    q.push(make_pair(berth[i].now_items,i));
+//                    break;
+//                }
+//            }
+//        }
         else return;
     }
 
@@ -317,6 +358,13 @@ void handle_boat(int boat_id,int nowzhen)
         {
             printf("ship %d\n",boat_id);
             berth[boat[boat_id].pos].now_items -= (nowzhen-boat[boat_id].startzhen)*berth[boat[boat_id].pos].loading_speed;
+            berth[boat[boat_id].pos].boat_is_coming = 0;
+            boat[boat_id].startzhen = 0;
+        }
+        else if(nowzhen + berth[boat[boat_id].pos].transport_time > 14990)
+        {
+            printf("ship %d\n",boat_id);
+            berth[boat[boat_id].pos].now_items = 0;
             berth[boat[boat_id].pos].boat_is_coming = 0;
             boat[boat_id].startzhen = 0;
         }
