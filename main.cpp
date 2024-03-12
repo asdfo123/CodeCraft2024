@@ -70,8 +70,8 @@ void Init()
         scanf("%d%d%d%d", &berth[idd].x, &berth[idd].y, &berth[idd].transport_time, &berth[idd].loading_speed);
         berth[i].now_items = 0;
         berth[i].boat_is_coming = 0;
-        berth[idd].x++;
-        berth[idd].y++;//更平均
+//        berth[idd].x++;
+//        berth[idd].y++;//更平均
     }
     scanf("%d", &boat_capacity);
     char okk[100];
@@ -128,12 +128,11 @@ void bfs(const Point& start,int mode=0) {
     while (!q.empty()) {
         Point cur = q.front();
         q.pop();
-
         for (int i = 0; i < 4; i++) {
             int nx = cur.x + dx[i];
             int ny = cur.y + dy[i];
             if (nx >= 0 && nx < n && ny >= 0 && ny < n && ch[nx][ny] != '#' && ch[nx][ny] != '*' && dist[nx][ny] == INF) {
-//                if(mode == 0&&(nx<start.x-0||nx>start.x+30||ny<start.y-30||ny>start.y+30)) continue;
+//                if(mode == 0&&(nx<start.x-30||nx>start.x+30||ny<start.y-30||ny>start.y+30)) continue;
                 dist[nx][ny] = dist[cur.x][cur.y] + 1;
                 q.push(Point(nx, ny));
             }
@@ -144,7 +143,7 @@ void bfs(const Point& start,int mode=0) {
 priority_queue<pair<int,int>> q;
 int findNextMove(int robot_id, bool goods,int nowzhen) {
     bfs(Point(robot[robot_id].x, robot[robot_id].y),goods);
-    if(robot[robot_id].logtime + 10 < nowzhen) //8好
+    if(robot[robot_id].logtime + 8 < nowzhen) //8好
     {
         if(robot[robot_id].logx == robot[robot_id].x && robot[robot_id].logy == robot[robot_id].y){
             int pianyi = rand()%4;
@@ -177,20 +176,20 @@ int findNextMove(int robot_id, bool goods,int nowzhen) {
         robot[robot_id].logx = robot[robot_id].x;
         robot[robot_id].logy = robot[robot_id].y;
     }
-    int min_distance = INF;
+    long long min_distance = INF;
     Point targetPos(0, 0);
-    int status_metrics = INF;
+    long long status_metrics = (long long)INF*2;
     if(goods == 0)//find goods
     {
         for (auto item : items) {
-            int distance = dist[item.x][item.y];
-            if (distance < min_distance){
-                //status_metrics = distance - item.val;
+            long long distance = dist[item.x][item.y];
+            if (2*distance - (long long)item.val < status_metrics){
+                status_metrics = 2*distance - (long long)item.val;
                 min_distance = distance;
                 targetPos = Point(item.x, item.y);
             }
         }
-        if(min_distance == INF) return -1;
+        if(status_metrics >= INF) return -1;
     }
     else //find berth
     {
@@ -288,7 +287,7 @@ void handle_robot(int robot_id,int nowzhen)
     }
     else
     {
-        int dir = findNextMove(robot_id, robot[robot_id].goods,nowzhen);
+        int dir = findNextMove(robot_id, robot[robot_id].goods, nowzhen);
         if(dir == 4)
         {
             printf("pull %d\n", robot_id);
