@@ -12,6 +12,7 @@ struct Robot
     int status; // 0: recovering, 1: moving
     int mbx, mby;
     int logtime, logx, logy;
+    int item_value;
     Robot() {}
     Robot(int startX, int startY) {
         x = startX;
@@ -26,6 +27,7 @@ struct Berth
     int transport_time;
     int loading_speed;
     int now_items;
+    int now_items_value;
     int boat_is_coming;
     int id;
     Berth(){}
@@ -179,6 +181,7 @@ int findNextMove(int robot_id, bool goods,int nowzhen) {
     long long min_distance = INF;
     Point targetPos(0, 0);
     long long status_metrics = (long long)INF*2;
+    Item targetItem(0, 0, 0, 0);
     if(goods == 0)//find goods
     {
         for (auto item : items) {
@@ -187,6 +190,7 @@ int findNextMove(int robot_id, bool goods,int nowzhen) {
                 status_metrics = 2*distance - (long long)item.val;
                 min_distance = distance;
                 targetPos = Point(item.x, item.y);
+                targetItem = Item(item.x, item.y, 0, item.val);
             }
         }
         if(status_metrics >= INF) return -1;
@@ -206,6 +210,7 @@ int findNextMove(int robot_id, bool goods,int nowzhen) {
     }
     if(min_distance == 0)
     {
+        if(goods == 0) robot[robot_id].item_value = targetItem.val;
         return 4;
     }
     //cerr<<"1"<<endl;
@@ -296,7 +301,9 @@ void handle_robot(int robot_id,int nowzhen)
                 if(berth[i].x == robot[robot_id].x && berth[i].y == robot[robot_id].y)
                 {
                     berth[i].now_items += 1;
+                    berth[i].now_items_value += robot[robot_id].item_value;
                     q.push(make_pair(berth[i].now_items,i));
+//                    q.push(make_pair(berth[i].now_items_value,i));
                     break;
                 }
             }
@@ -352,19 +359,22 @@ void handle_boat(int boat_id,int nowzhen)
             printf("ship %d\n",boat_id);
             berth[boat[boat_id].pos].now_items = 0;
             berth[boat[boat_id].pos].boat_is_coming = 0;
+            berth[boat[boat_id].pos].now_items_value = 0;
             boat[boat_id].startzhen = 0;
         }
         else if((nowzhen-boat[boat_id].startzhen)*berth[boat[boat_id].pos].loading_speed >= boat_capacity) //100
         {
             printf("ship %d\n",boat_id);
             berth[boat[boat_id].pos].now_items -= (nowzhen-boat[boat_id].startzhen)*berth[boat[boat_id].pos].loading_speed;
+            berth[boat[boat_id].pos].now_items_value = 0;
             berth[boat[boat_id].pos].boat_is_coming = 0;
             boat[boat_id].startzhen = 0;
         }
-        else if(nowzhen + berth[boat[boat_id].pos].transport_time > 14990)
+        else if(nowzhen + berth[boat[boat_id].pos].transport_time > 14998)
         {
             printf("ship %d\n",boat_id);
             berth[boat[boat_id].pos].now_items = 0;
+            berth[boat[boat_id].pos].now_items_value = 0;
             berth[boat[boat_id].pos].boat_is_coming = 0;
             boat[boat_id].startzhen = 0;
         }
