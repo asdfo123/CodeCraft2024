@@ -367,15 +367,6 @@ void handle_boat(int boat_id,int nowzhen)
             q.pop();
 
         }
-//        for(int i = 0;i < berth_num;i++)
-//        {
-//            if(berth[i].now_items > 0 && berth[i].boat_is_coming == 0)
-//            {
-//                printf("ship %d %d\n", boat_id, i);
-//                berth[i].boat_is_coming = 1;
-//                break;
-//            }
-//        }
     }
     if(boat[boat_id].status == 1 && boat[boat_id].pos != -1){
         if(boat[boat_id].startzhen == 0) boat[boat_id].startzhen = nowzhen;
@@ -409,7 +400,7 @@ void handle_item(int nowzhen)
 {
     for(Item &i : items)
     {
-        if(i.startzhen + 1000 < nowzhen)
+        if(i.startzhen + 950 < nowzhen)
         {
             items.erase(remove(items.begin(), items.end(), i), items.end());
 //            sum_item -= i.val;
