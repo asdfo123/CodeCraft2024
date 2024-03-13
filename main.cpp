@@ -356,7 +356,7 @@ void handle_boat(int boat_id,int nowzhen)
         if(boat[boat_id].startzhen == 0) boat[boat_id].startzhen = nowzhen;
         if((nowzhen-boat[boat_id].startzhen)*berth[boat[boat_id].pos].loading_speed >= berth[boat[boat_id].pos].now_items) //100
         {
-            printf("ship %d\n",boat_id);
+            printf("go %d\n",boat_id);
             berth[boat[boat_id].pos].now_items = 0;
             berth[boat[boat_id].pos].boat_is_coming = 0;
             berth[boat[boat_id].pos].now_items_value = 0;
@@ -364,7 +364,7 @@ void handle_boat(int boat_id,int nowzhen)
         }
         else if((nowzhen-boat[boat_id].startzhen)*berth[boat[boat_id].pos].loading_speed >= boat_capacity) //100
         {
-            printf("ship %d\n",boat_id);
+            printf("go %d\n",boat_id);
             berth[boat[boat_id].pos].now_items -= (nowzhen-boat[boat_id].startzhen)*berth[boat[boat_id].pos].loading_speed;
             berth[boat[boat_id].pos].now_items_value = 0;
             berth[boat[boat_id].pos].boat_is_coming = 0;
@@ -372,7 +372,7 @@ void handle_boat(int boat_id,int nowzhen)
         }
         else if(nowzhen + berth[boat[boat_id].pos].transport_time > 14998)
         {
-            printf("ship %d\n",boat_id);
+            printf("go %d\n",boat_id);
             berth[boat[boat_id].pos].now_items = 0;
             berth[boat[boat_id].pos].now_items_value = 0;
             berth[boat[boat_id].pos].boat_is_coming = 0;
