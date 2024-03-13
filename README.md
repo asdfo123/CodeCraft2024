@@ -10,3 +10,20 @@ Several bugs still exists
 # to-do-list
 Structure
 Class: Item, Robot, Berth, Boat
+
+3.11 209234
+
+### -s 22222
+3.7 212640
+
+3.8 188615
+
+3.9 186859
+
+3.10 126147
+
+3.11 186661
+
+3.12 250730
+
+3.13 208264
