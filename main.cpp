@@ -141,38 +141,41 @@ void bfs(const Point& start,int mode=0) {
         }
     }
 }
-
 priority_queue<pair<int,int>> q;
+int handle_crash(int robot_id, int nowzhen){ //make random step to stop crash
+    int pianyi = rand()%4;//随机访问
+    for(int dir = 0;dir < 4;dir++)
+    {
+        int dirr = (dir + pianyi) % 4;
+        int nx = robot[robot_id].x + dx[dirr];
+        int ny = robot[robot_id].y + dy[dirr];
+        if(nx >= 0 && nx < n && ny >= 0 && ny < n && ch[nx][ny] != '#' && ch[nx][ny] != '*')
+        {
+            int flag = 1;
+            for(int i = 0;i < robot_num;i++)
+            {
+                if(i == robot_id) continue;
+                if(robot[i].mbx == nx && robot[i].mby == ny)
+                {
+                    flag = 0;
+                    break;
+                }
+            }
+            if(flag == 1) {
+                robot[robot_id].mbx = nx; robot[robot_id].mby = ny;
+                return dirr;
+            }
+        }
+    }
+    return -1;
+}
 int findNextMove(int robot_id, bool goods,int nowzhen) {
     bfs(Point(robot[robot_id].x, robot[robot_id].y),goods);
     if(robot[robot_id].logtime + 8 < nowzhen) //8好
     {
         if(robot[robot_id].logx == robot[robot_id].x && robot[robot_id].logy == robot[robot_id].y){
-            int pianyi = rand()%4;
-            for(int dir = 0;dir < 4;dir++)
-            {
-                int dirr = (dir + pianyi) % 4;
-                int nx = robot[robot_id].x + dx[dirr];
-                int ny = robot[robot_id].y + dy[dirr];
-                if(nx >= 0 && nx < n && ny >= 0 && ny < n && ch[nx][ny] != '#' && ch[nx][ny] != '*')
-                {
-                    int flag = 1;
-                    for(int i = 0;i < robot_num;i++)
-                    {
-                        if(i == robot_id) continue;
-                        if(robot[i].mbx == nx && robot[i].mby == ny)
-                        {
-                            flag = 0;
-                            break;
-                        }
-                    }
-                    if(flag == 1) {
-                        robot[robot_id].mbx = nx;
-                        robot[robot_id].mby = ny;
-                        return dirr;
-                    }
-                }
-            }
+            int dir = handle_crash(robot_id, nowzhen);
+            if(dir != -1) return dir;
         }
         robot[robot_id].logtime = nowzhen;
         robot[robot_id].logx = robot[robot_id].x;
@@ -254,19 +257,6 @@ int findNextMove(int robot_id, bool goods,int nowzhen) {
 //        return 5+dir1;
 //    }
     return dir1;// 0: right, 1: left, 2: up, 3: down
-}
-void handle_item(int nowzhen)
-{
-    for(Item &i : items)
-    {
-        if(i.startzhen + 1000 < nowzhen)
-        {
-            items.erase(remove(items.begin(), items.end(), i), items.end());
-//            sum_item -= i.val;
-//            num_item--;
-        }
-
-    }
 }
 void handle_robot(int robot_id,int nowzhen)
 {
@@ -378,6 +368,19 @@ void handle_boat(int boat_id,int nowzhen)
             berth[boat[boat_id].pos].boat_is_coming = 0;
             boat[boat_id].startzhen = 0;
         }
+    }
+}
+void handle_item(int nowzhen)
+{
+    for(Item &i : items)
+    {
+        if(i.startzhen + 1000 < nowzhen)
+        {
+            items.erase(remove(items.begin(), items.end(), i), items.end());
+//            sum_item -= i.val;
+//            num_item--;
+        }
+
     }
 }
 int main()
