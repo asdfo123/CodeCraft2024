@@ -141,6 +141,41 @@ void bfs(const Point& start,int mode=0) {
         }
     }
 }
+struct Node {
+    int x, y, f;
+    Node(int _x, int _y, int _f) : x(_x), y(_y), f(_f) {}
+    bool operator<(const Node& rhs) const {
+        return f > rhs.f;
+    }
+};
+void astar(const Point& start, const Point& end) {
+    vector<vector<int>> f(N, vector<int>(N, INF));
+    priority_queue<Node> pq;
+    pq.push(Node(start.x, start.y, 0));
+    f[start.x][start.y] = 0;
+    while (!pq.empty()) {
+        Node cur = pq.top();
+        pq.pop();
+        if (cur.x == end.x && cur.y == end.y) {
+            // Reach the destination
+            break;
+        }
+        for (int i = 0; i < 4; i++) {
+            int nx = cur.x + dx[i];
+            int ny = cur.y + dy[i];
+            if (nx >= 0 && nx < n && ny >= 0 && ny < n && ch[nx][ny] != '#' && ch[nx][ny] != '*' && f[nx][ny] == INF) {
+                int g = cur.f + 1;
+                int h = abs(nx - end.x) + abs(ny - end.y); // Manhattan distance as heuristic
+                int new_f = g + h;
+                pq.push(Node(nx, ny, new_f));
+                f[nx][ny] = g;
+            }
+        }
+    }
+}
+void findNextMove_astar(){
+
+}
 priority_queue<pair<int,int>> q;
 int handle_crash(int robot_id, int nowzhen){ //make random step to stop crash
     int pianyi = rand()%4;//随机访问
@@ -383,6 +418,7 @@ void handle_item(int nowzhen)
 
     }
 }
+
 int main()
 {
     Init();
@@ -390,18 +426,13 @@ int main()
     {
         int id = Input(zhen);
         handle_item(id);
-        for(int i = 0; i < robot_num; i++){
-            //cerr<<zhen<<" "<<i<<endl;
+        for(int i = 0; i < robot_num; i++)
             handle_robot(i,id);
-        }
         for(int i = 0;i < 5;i++)
-        {
             handle_boat(i,id);
-        }
         puts("OK");
         fflush(stdout);
     }
-
     return 0;
 }
 
