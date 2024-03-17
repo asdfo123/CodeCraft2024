@@ -90,7 +90,14 @@ int Input(int startzhen)
     scanf("%s", okk);
     return id;
 }
-
+pair<int,int> log_pos[robot_num];
+void refresh_map()
+{
+    for(int i = 0;i < robot_num;i++)
+    {
+        ch[log_pos[i].first][log_pos[i].second] = '.';
+    }
+}
 const int INF = INT_MAX - 10;
 
 // 0: right, 1: left, 2: up, 3: down
@@ -100,6 +107,7 @@ struct Point {
     int x, y;
     Point(int x, int y) : x(x), y(y) {}
 };
+
 int dist[N][N];
 int dist_berth[berth_num][N][N];
 //BFS: return a 2D vector of shortest distance from start to each point.
@@ -171,34 +179,6 @@ struct Node {
         return f > rhs.f;
     }
 };
-void astar(const Point& start, const Point& end) {
-    vector<vector<int>> f(N, vector<int>(N, INF));
-    priority_queue<Node> pq;
-    pq.push(Node(start.x, start.y, 0));
-    f[start.x][start.y] = 0;
-    while (!pq.empty()) {
-        Node cur = pq.top();
-        pq.pop();
-        if (cur.x == end.x && cur.y == end.y) {
-            // Reach the destination
-            break;
-        }
-        for (int i = 0; i < 4; i++) {
-            int nx = cur.x + dx[i];
-            int ny = cur.y + dy[i];
-            if (nx >= 0 && nx < n && ny >= 0 && ny < n && ch[nx][ny] != '#' && ch[nx][ny] != '*' && f[nx][ny] == INF) {
-                int g = cur.f + 1;
-                int h = abs(nx - end.x) + abs(ny - end.y); // Manhattan distance as heuristic
-                int new_f = g + h;
-                pq.push(Node(nx, ny, new_f));
-                f[nx][ny] = g;
-            }
-        }
-    }
-}
-void findNextMove_astar(){
-
-}
 priority_queue<pair<int,int>> q;
 int handle_crash(int robot_id, int nowzhen){ //make random step to stop crash
     int pianyi = rand()%4;//随机访问
@@ -221,6 +201,8 @@ int handle_crash(int robot_id, int nowzhen){ //make random step to stop crash
             }
             if(flag == 1) {
                 robot[robot_id].mbx = nx; robot[robot_id].mby = ny;
+                ch[robot[robot_id].mbx][robot[robot_id].mby] = '#';
+                log_pos[robot_id] = make_pair(robot[robot_id].mbx,robot[robot_id].mby);
                 return dirr;
             }
         }
@@ -324,6 +306,8 @@ int findNextMove(int robot_id, bool goods,int nowzhen) {
     //cerr<<"3"<<endl;
     robot[robot_id].mbx = x;
     robot[robot_id].mby = y;
+    ch[robot[robot_id].mbx][robot[robot_id].mby] = '#';
+    log_pos[robot_id] = make_pair(robot[robot_id].mbx,robot[robot_id].mby);
 //    if(min_distance == 1)
 //    {
 //        return 5+dir1;
@@ -482,7 +466,7 @@ void handle_item(int nowzhen)
 {
     for(Item &i : items)
     {
-        if(i.startzhen + 950 < nowzhen)//970 better
+        if(i.startzhen + 970 < nowzhen)//970 better
         {
             items.erase(remove(items.begin(), items.end(), i), items.end());
 //            sum_item -= i.val;
@@ -494,11 +478,13 @@ void handle_item(int nowzhen)
 
 int main()
 {
+    srand(123);  // 使用固定的种子值 123
     Init();
     for(int zhen = 1; zhen <= 15000; zhen++)
     {
         int id = Input(zhen);
         handle_item(id);
+        refresh_map();
         for(int i = 0; i < robot_num; i++)
             handle_robot(i,id);
         for(int i = 0;i < 5;i++)
