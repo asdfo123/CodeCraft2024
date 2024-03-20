@@ -44,6 +44,11 @@ struct Berth
     }
 }berth[berth_num + 10],berth1[berth_num + 10];
 
+bool check_which_berth(int berth_id, int x, int y)
+{
+    if(x >= berth[berth_id].x  && x <= berth[berth_id].x+3 && y >= berth[berth_id].y &&y <= berth[berth_id].y+3) return 1;
+    return 0;
+}
 struct Boat
 {
     int num, pos, status;
@@ -161,9 +166,9 @@ void Init()
         berth[idd].now_items = 0;
         berth[idd].boat_is_coming = 0;
         cerr<<berth[idd].transport_time<<endl;
-        pair<int,int> m = check_region(berth[idd].x,berth[idd].y);
-        berth[idd].x = m.first;
-        berth[idd].y = m.second;
+//        pair<int,int> m = check_region(berth[idd].x,berth[idd].y);
+//        berth[idd].x = m.first;
+//        berth[idd].y = m.second;
 //        berth[idd].x++;
 //        berth[idd].y++;
         bfs(Point(berth[idd].x, berth[idd].y),dist_berth[idd]);
@@ -264,13 +269,17 @@ int findNextMove(int robot_id, bool goods,int nowzhen) {
     else //find berth
     {
         for (int i = 0; i < berth_num; i++) {
-            int distance = dist[berth[i].x][berth[i].y];
-//            cerr<<berth[i].x<<" "<<berth[i].y<<endl;
-//            cerr<<distance<<endl;
-            if (distance < min_distance) {
-                min_distance = distance;
-                targetPos = Point(berth[i].x, berth[i].y);
-            }
+            for(int j = 0;j < 3;j++)
+                for(int k = 0;k < 3;k++)
+                {
+                    int distance = dist[berth[i].x+j][berth[i].y+k];
+//                  cerr<<berth[i].x<<" "<<berth[i].y<<endl;
+//                  cerr<<distance<<endl;
+                    if (distance < min_distance) {
+                        min_distance = distance;
+                        targetPos = Point(berth[i].x+j, berth[i].y+k);
+                    }
+                }
         }
         if(min_distance == INF) return -1;
     }
@@ -368,7 +377,7 @@ void handle_robot(int robot_id,int nowzhen)
             printf("pull %d\n", robot_id);
             for(int i = 0;i < berth_num;i++)
             {
-                if(berth[i].x == robot[robot_id].x && berth[i].y == robot[robot_id].y)
+                if(check_which_berth(i,robot[robot_id].x,robot[robot_id].y))
                 {
                     berth[i].now_items += 1;
                     berth[i].now_items_value += robot[robot_id].item_value;
@@ -385,7 +394,7 @@ void handle_robot(int robot_id,int nowzhen)
             printf("pull %d\n", robot_id);
             for(int i = 0;i < berth_num; i++)
             {
-                if(berth[i].x == robot[robot_id].mbx && berth[i].y == robot[robot_id].mby)
+                if(check_which_berth(i,robot[robot_id].mbx,robot[robot_id].mby))
                 {
                     berth[i].now_items += 1;
                     berth[i].now_items_value += robot[robot_id].item_value;
