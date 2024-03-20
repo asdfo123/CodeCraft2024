@@ -223,7 +223,7 @@ int handle_crash(int robot_id, int nowzhen){ //make random step to stop crash
 }
 int findNextMove(int robot_id, bool goods,int nowzhen) {
     bfs(Point(robot[robot_id].x, robot[robot_id].y),dist);
-    if(robot[robot_id].logtime + 15 < nowzhen) //8好
+    if(robot[robot_id].logtime + 8 < nowzhen) //8好
     {
         if(robot[robot_id].logx == robot[robot_id].x && robot[robot_id].logy == robot[robot_id].y && robot[robot_id].loggoods == robot[robot_id].goods){
             int dir = handle_crash(robot_id, nowzhen);
@@ -249,7 +249,9 @@ int findNextMove(int robot_id, bool goods,int nowzhen) {
             {
                 dist_to_berth = min(dist_to_berth,dist_berth[i][item.x][item.y]);
             }
-            double metrics = ((double)(distance)*2 - (double)item.val);
+            double metrics;
+            if(nowzhen < 10000)  metrics = ((double)(distance)*2 - (double)item.val - (double)(nowzhen-item.startzhen)*0.1);
+            else { metrics = ((double)(distance)*2 - (double)item.val);}
 //            if (distance + (long long)dist_to_berth < status_metrics){
 //                status_metrics = distance + (long long)dist_to_berth;
 //                min_distance = distance;
