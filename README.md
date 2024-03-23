@@ -57,3 +57,23 @@ Latest -s 22221 (12,80)
 3.10 
 
 292509
+
+
+-4
+3.13 310231
+{"status":"Successful","score":273976}
+3.12 350669
+{"status":"Successful","score":300831}
+3.11 
+
+351741
+[INFO]D:/workspace/cppcode/2024codeCraft0.2/preliminary_judge/World.cpp:333|step|world.step 15000       2 ms, player money 307094
+{"status":"Successful","score":307094}
+
+
+
+-s 12
+3.10 {"status":"Successful","score":184002}
+3.11 {"status":"Successful","score":218951}
+3.12 {"status":"Successful","score":250764}
+
