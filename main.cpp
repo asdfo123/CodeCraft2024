@@ -298,6 +298,7 @@ int findNextMove(int robot_id, bool goods,int nowzhen) {
             the_item_now_want_to_get[robot_id] = make_pair(targetItem.x,targetItem.y);
         }
     }
+
     int dir1 = 0;
     while (dist[x][y] > 1) {
         for (int dir = 0; dir < 4; dir++) {
